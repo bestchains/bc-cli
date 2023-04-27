@@ -17,8 +17,8 @@ limitations under the License.
 package main
 
 import (
-	"github.com/bestchains/bc-cli/cmd/create"
-	"github.com/bestchains/bc-cli/cmd/get"
+	"github.com/bestchains/bc-cli/cmd/bc-cli/create"
+	"github.com/bestchains/bc-cli/cmd/bc-cli/get"
 	"github.com/spf13/cobra"
 )
 
