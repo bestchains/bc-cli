@@ -25,7 +25,8 @@ import (
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bc-cli [usage]",
-		Short: "bc-cli",
+		Short: "Command line tools for Bestchains",
+		Long:  `bc-cli is a command tool for bestchain that can query and create a variety of blockchain resources.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},

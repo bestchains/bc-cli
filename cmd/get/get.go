@@ -17,14 +17,17 @@ limitations under the License.
 package get
 
 import (
+	"os"
+
 	"github.com/bestchains/bc-cli/pkg/depository"
 	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 func NewGetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "get",
 	}
-	cmd.AddCommand(depository.NewGetDepositoryCmd())
+	cmd.AddCommand(depository.NewGetDepositoryCmd(depository.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	return cmd
 }
