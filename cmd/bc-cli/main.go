@@ -18,6 +18,7 @@ package main
 
 import (
 	"github.com/bestchains/bc-cli/cmd/bc-cli/create"
+	delcmd "github.com/bestchains/bc-cli/cmd/bc-cli/delete"
 	"github.com/bestchains/bc-cli/cmd/bc-cli/get"
 	"github.com/spf13/cobra"
 )
@@ -34,6 +35,7 @@ func NewCmd() *cobra.Command {
 
 	cmd.AddCommand(create.NewCreateCmd())
 	cmd.AddCommand(get.NewGetCmd())
+	cmd.AddCommand(delcmd.NewDeleteCmd())
 	return cmd
 }
 

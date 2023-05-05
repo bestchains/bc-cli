@@ -14,23 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package get
+package delete
 
 import (
 	"os"
 
 	"github.com/bestchains/bc-cli/pkg/account"
 	"github.com/bestchains/bc-cli/pkg/common"
-	"github.com/bestchains/bc-cli/pkg/depository"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-func NewGetCmd() *cobra.Command {
+func NewDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "get",
+		Use: "delete",
 	}
-	cmd.AddCommand(depository.NewGetDepositoryCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
-	cmd.AddCommand(account.NewGetAccountCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+
+	cmd.AddCommand(account.NewDeleteAccountCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	return cmd
 }

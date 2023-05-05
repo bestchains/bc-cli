@@ -3,7 +3,7 @@ module github.com/bestchains/bc-cli
 go 1.20
 
 require (
-	github.com/bestchains/bestchains-contracts v0.0.0-20230424081257-d8f8dfc77583
+	github.com/bestchains/bestchains-contracts v0.0.0-20230427091538-99ca7569cde7
 	github.com/golangci/golangci-lint v1.52.2
 	github.com/spf13/cobra v1.7.0
 	k8s.io/cli-runtime v0.27.1

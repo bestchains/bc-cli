@@ -16,10 +16,31 @@ limitations under the License.
 
 package common
 
+import (
+	"os"
+	"path/filepath"
+
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+)
+
 const (
 	CreateDepository          = "/basic/putValue"
 	CreateUntrustedDepository = "/basic/putUntrustValue"
 	GetDepository             = "/basic/depositories/%s"
 	ListDepository            = "/basic/depositories"
 	CurrentNonce              = "/basic/currentNonce"
+	WalletHomeDir             = ".bestchains/wallet"
 )
+
+var (
+	WalletConfigDir = filepath.Join(os.Getenv("HOME"), WalletHomeDir)
+)
+
+type WalletConfig struct {
+	Address    string `json:"address"`
+	PrivateKey []byte `json:"privKey"`
+}
+
+type Options struct {
+	genericclioptions.IOStreams
+}

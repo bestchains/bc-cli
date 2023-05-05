@@ -14,24 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package create
+package account
 
-import (
-	"os"
+type AccountPrinter string
 
-	"github.com/bestchains/bc-cli/pkg/account"
-	"github.com/bestchains/bc-cli/pkg/common"
-	"github.com/bestchains/bc-cli/pkg/depository"
-	"github.com/spf13/cobra"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
-)
-
-func NewCreateCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use: "create",
-	}
-
-	cmd.AddCommand(depository.NewCreateDepositoryCmd())
-	cmd.AddCommand(account.NewCreateAccountCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
-	return cmd
+func (a AccountPrinter) GetByHeader(h string) string {
+	return string(a)
 }
