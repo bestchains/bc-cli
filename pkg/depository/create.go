@@ -115,7 +115,7 @@ func NewCreateDepositoryCmd() *cobra.Command {
 	cmd.Flags().StringP("host", "o", "", "host URL")
 	cmd.Flags().StringP("name", "n", "", "depot name")
 	cmd.Flags().StringP("contentType", "t", "", "depot file type")
-	cmd.Flags().StringP("contentID", "ID", "", "depot file ID")
+	cmd.Flags().StringP("contentID", "", "", "depot file ID")
 	cmd.Flags().StringP("platform", "p", "", "depot source platform")
 	cmd.Flags().Bool("untrusted", true, "put untrusted value")
 
