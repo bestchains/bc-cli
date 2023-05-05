@@ -23,13 +23,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/bestchains/bc-cli/pkg/common"
-	uhttp "github.com/bestchains/bc-cli/pkg/utils/http"
-	"github.com/bestchains/bestchains-contracts/library/context"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/bestchains/bc-cli/pkg/common"
+	uhttp "github.com/bestchains/bc-cli/pkg/utils/http"
+	"github.com/bestchains/bestchains-contracts/library/context"
 
 	"github.com/bestchains/bestchains-contracts/library"
 	"github.com/spf13/cobra"
