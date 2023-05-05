@@ -71,3 +71,20 @@ func (d Depository) GetByHeader(s string) string {
 	}
 	return "<none>"
 }
+
+type ValueDepository struct {
+	Name             string `json:"name"`
+	ContentType      string `json:"contentType"`
+	ContentID        string `json:"contentID"` // hash of the file
+	TrustedTimestamp string `json:"trustedTimestamp"`
+	Platform         string `json:"platform"`
+}
+
+type Info struct {
+	Message string `json:"message"`
+	Value   string `json:"value"`
+}
+
+type nonce struct {
+	Nonce uint64 `json:"nonce"`
+}

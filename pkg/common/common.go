@@ -17,7 +17,9 @@ limitations under the License.
 package common
 
 const (
-	CreateDepository = "/basic/putValue"
-	GetDepository    = "/basic/depositories/%s"
-	ListDepository   = "/basic/depositories"
+	CreateDepository          = "/basic/putValue"
+	CreateUntrustedDepository = "/basic/putUntrustValue"
+	GetDepository             = "/basic/depositories/%s"
+	ListDepository            = "/basic/depositories"
+	CurrentNonce              = "/basic/currentNonce"
 )
