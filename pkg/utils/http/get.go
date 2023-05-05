@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/bestchains/bc-cli/pkg/auth"
 )
 
 func Do(_url, method string, headers map[string]string, body []byte) ([]byte, error) {
@@ -32,6 +34,7 @@ func Do(_url, method string, headers map[string]string, body []byte) ([]byte, er
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
+	auth.AddAuthHeader(req)
 
 	c := &http.Client{
 		Transport: &http.Transport{
