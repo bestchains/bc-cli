@@ -26,7 +26,6 @@ import (
 	"github.com/bestchains/bc-cli/pkg/printer"
 	uhttp "github.com/bestchains/bc-cli/pkg/utils/http"
 	"github.com/spf13/cobra"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 func ConstructQuery(cmd *cobra.Command) string {
@@ -57,11 +56,7 @@ func ConstructQuery(cmd *cobra.Command) string {
 
 var headers = []string{"index", "kid", "platform", "operator", "owner", "blockNumber", "time"}
 
-type Options struct {
-	genericclioptions.IOStreams
-}
-
-func NewGetDepositoryCmd(option Options) *cobra.Command {
+func NewGetDepositoryCmd(option common.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "depository [KID]",
 		Short: "Get one or more depositories",
