@@ -18,21 +18,22 @@ package depository
 
 import (
 	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bestchains/bc-cli/pkg/common"
 	uhttp "github.com/bestchains/bc-cli/pkg/utils/http"
 	"github.com/bestchains/bestchains-contracts/library/context"
 
-	"github.com/bestchains/bestchains-contracts/library"
 	"github.com/spf13/cobra"
 )
 
@@ -62,6 +63,14 @@ func NewCreateDepositoryCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			walletDir, err := cmd.Flags().GetString("wallet")
+			if err != nil {
+				return err
+			}
+			account, err := cmd.Flags().GetString("account")
+			if err != nil {
+				return err
+			}
 
 			// FIXME: the host should be read from the configuration file.
 			host, _ := cmd.Flags().GetString("host")
@@ -87,12 +96,21 @@ func NewCreateDepositoryCmd() *cobra.Command {
 				fmt.Print(string(resp))
 				return nil
 			} else {
-				// Generate Account
-				privKey, addr := randAccountAndPrivateKey()
-				// Get Nonce
-				non := getNonce(host, addr.String())
+				//read account info
+				obj, err := getWalletInfo(walletDir, account)
+				if err != nil {
+					return err
+				}
+				pkEncoded, _ := pem.Decode(obj.PrivateKey)
+				pk, err := x509.ParseECPrivateKey(pkEncoded.Bytes)
+				if err != nil {
+					return err
+				}
+
+				// get nonce
+				nonce := getNonce(host, obj.Address)
 				// generate message
-				msgBase64 := generateMessageBase64(non, privKey, []byte(valueBase64))
+				msgBase64 := generateMessageBase64(nonce, *pk, []byte(valueBase64))
 				// POST PutValue request
 				postValue := url.Values{}
 				postValue.Add("message", msgBase64)
@@ -114,9 +132,11 @@ func NewCreateDepositoryCmd() *cobra.Command {
 
 	// define flags
 	cmd.Flags().StringP("host", "o", "", "host URL")
+	cmd.Flags().StringP("wallet", "w", "", "wallet path")
+	cmd.Flags().StringP("account", "a", "", "account to be used")
 	cmd.Flags().StringP("name", "n", "", "depot name")
 	cmd.Flags().StringP("contentType", "t", "", "depot file type")
-	cmd.Flags().StringP("contentID", "", "", "depot file ID")
+	cmd.Flags().StringP("contentID", "i", "", "depot file ID")
 	cmd.Flags().StringP("platform", "p", "", "depot source platform")
 	cmd.Flags().Bool("untrusted", true, "put untrusted value")
 
@@ -171,21 +191,6 @@ func generateMessageBase64(nonce uint64, key ecdsa.PrivateKey, value []byte) str
 	return msgStr
 }
 
-func randAccountAndPrivateKey() (ecdsa.PrivateKey, library.Address) {
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	if err != nil {
-		privateKey = new(ecdsa.PrivateKey)
-	}
-
-	var addr library.Address
-	err = addr.FromPublicKey(&privateKey.PublicKey)
-	if err != nil {
-		addr = library.ZeroAddress
-	}
-
-	return *privateKey, addr
-}
-
 func getNonce(h string, account string) uint64 {
 	getReqValue := url.Values{}
 	getReqValue.Add("account", account)
@@ -202,4 +207,42 @@ func getNonce(h string, account string) uint64 {
 	}
 
 	return n.Nonce
+}
+
+func getWalletInfo(walletDir string, account string) (common.WalletConfig, error) {
+	obj := common.WalletConfig{
+		Address:    "",
+		PrivateKey: nil,
+	}
+
+	if walletDir == "" {
+		walletDir = common.WalletConfigDir
+	}
+	walletDir = strings.TrimSuffix(walletDir, "/")
+	_, err := os.Stat(walletDir)
+	if err != nil {
+		return obj, fmt.Errorf("walletDir error: %s", err)
+	}
+
+	// get accounts
+	var hasAccount bool
+
+	// read account info
+	objBytes, err := os.ReadFile(walletDir + "/" + account)
+	if err != nil {
+		return obj, fmt.Errorf("read file error: %s", err)
+	}
+
+	err = json.Unmarshal(objBytes, &obj)
+	if err != nil {
+		return obj, fmt.Errorf("unmarshal error: %s", err)
+	}
+	if obj.Address == account {
+		hasAccount = true
+	}
+
+	if !hasAccount {
+		return obj, fmt.Errorf("account %s not found", account)
+	}
+	return obj, nil
 }

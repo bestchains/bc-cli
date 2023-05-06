@@ -80,11 +80,6 @@ type ValueDepository struct {
 	Platform         string `json:"platform"`
 }
 
-type Info struct {
-	Message string `json:"message"`
-	Value   string `json:"value"`
-}
-
 type nonce struct {
 	Nonce uint64 `json:"nonce"`
 }

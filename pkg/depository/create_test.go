@@ -17,22 +17,24 @@ limitations under the License.
 package depository
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"github.com/bestchains/bc-cli/pkg/account"
+	"github.com/bestchains/bc-cli/pkg/common"
 	"github.com/bestchains/bestchains-contracts/library/context"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"os"
 	"testing"
 )
 
-func TestRandAccountAndKey(t *testing.T) {
-	_, testAddr := randAccountAndPrivateKey()
-	err := testAddr.Validate()
-	if err != nil {
-		t.Fatalf("wrong address format")
-	}
-}
+const (
+	getTestBasePath = ".get"
+	getTestPath     = getTestBasePath + "/wallet"
+)
 
 func TestValueDepotGen(t *testing.T) {
 	expectValDepot := ValueDepository{
@@ -92,4 +94,51 @@ func TestMsgGen(t *testing.T) {
 	if resMsg.Nonce != expectMsg.Nonce {
 		t.Fatalf("generated Msg not match, expect nonce '%v', got '%v'", expectMsg.Nonce, resMsg.Nonce)
 	}
+}
+
+func TestGetNonce(t *testing.T) {
+
+}
+
+func TestGetWalletInfo(t *testing.T) {
+	// step 1: create 4 accounts.
+	b1 := bytes.NewBuffer([]byte{})
+	b2 := bytes.NewBuffer([]byte{})
+	createCmd := account.NewCreateAccountCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: b1, ErrOut: b2}})
+	_ = createCmd.Flags().Set("wallet", getTestPath)
+	for i := 0; i < 4; i++ {
+		_ = createCmd.Execute()
+	}
+
+	dirEntries, err := os.ReadDir(getTestPath)
+	if err != nil {
+		t.Fatalf("run read dir error %s", err)
+	}
+
+	// this results as reading the last account created
+	var acc string
+	for _, dir := range dirEntries {
+		if dir.IsDir() {
+			continue
+		}
+		acc = dir.Name()
+	}
+
+	// step 1: Using non-existent paths to obtain account information
+	_, err = getWalletInfo("/tmp/def/abc", acc)
+	if err == nil {
+		t.Fatalf("run getWalletInfo with %s /tmp/def/abc, expected err, no err returned", acc)
+	}
+
+	// step 2: Use the correct path to get the correct account information output
+	obj, err := getWalletInfo(getTestPath, acc)
+	if err != nil {
+		t.Fatalf("run getWalletInfo with account %s, path %s, error: %s", acc, getTestPath, err)
+	}
+
+	if acc != obj.Address {
+		t.Fatalf("expect %v get %v", acc, obj.Address)
+	}
+
+	os.RemoveAll(getTestBasePath)
 }
