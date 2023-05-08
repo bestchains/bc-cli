@@ -224,9 +224,6 @@ func getWalletInfo(walletDir string, account string) (common.WalletConfig, error
 		return obj, fmt.Errorf("walletDir error: %s", err)
 	}
 
-	// get accounts
-	var hasAccount bool
-
 	// read account info
 	objBytes, err := os.ReadFile(walletDir + "/" + account)
 	if err != nil {
@@ -237,11 +234,7 @@ func getWalletInfo(walletDir string, account string) (common.WalletConfig, error
 	if err != nil {
 		return obj, fmt.Errorf("unmarshal error: %s", err)
 	}
-	if obj.Address == account {
-		hasAccount = true
-	}
-
-	if !hasAccount {
+	if obj.Address != account {
 		return obj, fmt.Errorf("account %s not found", account)
 	}
 	return obj, nil
