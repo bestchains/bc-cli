@@ -17,10 +17,19 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	goflags "flag"
+	"path"
+
 	"github.com/bestchains/bc-cli/cmd/bc-cli/create"
 	delcmd "github.com/bestchains/bc-cli/cmd/bc-cli/delete"
 	"github.com/bestchains/bc-cli/cmd/bc-cli/get"
+	"github.com/bestchains/bc-cli/pkg/auth"
+	"github.com/bestchains/bc-cli/pkg/common"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"k8s.io/klog/v2"
 )
 
 func NewCmd() *cobra.Command {
@@ -31,6 +40,45 @@ func NewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
+	}
+	fs := goflags.NewFlagSet("", goflags.PanicOnError)
+	klog.InitFlags(fs)
+	cmd.PersistentFlags().AddGoFlagSet(fs)
+	cmd.PersistentFlags().String("issuer-url", "https://portal.172.22.96.209.nip.io/oidc", "issuer url for oidc")
+	cmd.PersistentFlags().Bool("enable-auth", false, "enable oidc auth")
+	ConfigFileFullPath := cmd.PersistentFlags().String("config", common.ConfigFilePath, "config file")
+	_ = viper.BindPFlag("auth.issuerurl", cmd.PersistentFlags().Lookup("issuer-url"))
+	_ = viper.BindPFlag("auth.enable", cmd.PersistentFlags().Lookup("enable-auth"))
+
+	var config *common.Config
+	cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
+		config, err = loadConfig(*ConfigFileFullPath)
+		if err != nil {
+			return err
+		}
+		configGet, err := auth.Auth(cmd.Context(), &config.Auth)
+		if err != nil {
+			return err
+		}
+		config.Auth = *configGet
+		return nil
+	}
+
+	cmd.PersistentPostRunE = func(cmd *cobra.Command, args []string) (err error) {
+		configByte, err := json.Marshal(config)
+		if err != nil {
+			return err
+		}
+		if err := viper.ReadConfig(bytes.NewReader(configByte)); err != nil {
+			return err
+		}
+		if err := viper.WriteConfig(); err != nil {
+			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+				return viper.SafeWriteConfig()
+			}
+			return err
+		}
+		return nil
 	}
 
 	cmd.AddCommand(create.NewCreateCmd())
@@ -43,4 +91,24 @@ func main() {
 	if err := NewCmd().Execute(); err != nil {
 		panic(err)
 	}
+}
+
+func loadConfig(configFile string) (config *common.Config, err error) {
+	config = &common.Config{}
+	viper.AddConfigPath(path.Dir(configFile))
+	viper.SetConfigName(path.Base(configFile))
+	viper.SetConfigType(common.ConfigFileType)
+	err = viper.ReadInConfig()
+	if err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			// ignore config file not exist error
+			return nil, err
+		}
+	}
+	err = viper.Unmarshal(config)
+	if err != nil {
+		return nil, err
+	}
+	klog.V(3).Infof("all config: %+v", config)
+	return config, nil
 }

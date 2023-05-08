@@ -26,6 +26,7 @@ import (
 	"github.com/bestchains/bc-cli/pkg/printer"
 	uhttp "github.com/bestchains/bc-cli/pkg/utils/http"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func ConstructQuery(cmd *cobra.Command) string {
@@ -61,8 +62,7 @@ func NewGetDepositoryCmd(option common.Options) *cobra.Command {
 		Use:   "depository [KID]",
 		Short: "Get one or more depositories",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// FIXME: the host should be read from the configuration file.
-			host, _ := cmd.Flags().GetString("host")
+			host := viper.GetString("saas.depository.server")
 			if host == "" {
 				return fmt.Errorf("no host provided")
 			}
@@ -118,6 +118,7 @@ func NewGetDepositoryCmd(option common.Options) *cobra.Command {
 	cmd.Flags().StringP("name", "n", "", "search depository by name")
 	cmd.Flags().StringP("contentName", "c", "", "search depository by content name")
 	cmd.Flags().StringP("host", "", "", "bc-saas server")
+	_ = viper.BindPFlag("saas.depository.server", cmd.Flags().Lookup("host"))
 
 	return cmd
 }
