@@ -46,9 +46,16 @@ func NewCmd() *cobra.Command {
 	cmd.PersistentFlags().AddGoFlagSet(fs)
 	cmd.PersistentFlags().String("issuer-url", "https://portal.172.22.96.209.nip.io/oidc", "issuer url for oidc")
 	cmd.PersistentFlags().Bool("enable-auth", false, "enable oidc auth")
+	cmd.PersistentFlags().String("master-url", "https://172.22.96.146:9443", "master url")
+	cmd.PersistentFlags().String("client-id", common.ClientID, "oidc client id")
+	cmd.PersistentFlags().String("client-secret", common.ClientSecret, "oidc client secret")
+
 	ConfigFileFullPath := cmd.PersistentFlags().String("config", common.ConfigFilePath, "config file")
 	_ = viper.BindPFlag("auth.issuerurl", cmd.PersistentFlags().Lookup("issuer-url"))
 	_ = viper.BindPFlag("auth.enable", cmd.PersistentFlags().Lookup("enable-auth"))
+	_ = viper.BindPFlag("cluster.server", cmd.PersistentFlags().Lookup("master-url"))
+	_ = viper.BindPFlag("auth.clientid", cmd.PersistentFlags().Lookup("client-id"))
+	_ = viper.BindPFlag("auth.clientsecret", cmd.PersistentFlags().Lookup("client-secret"))
 
 	var config *common.Config
 	cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
@@ -61,6 +68,8 @@ func NewCmd() *cobra.Command {
 			return err
 		}
 		config.Auth = *configGet
+		viper.Set("auth.idtoken", config.Auth.IDToken)
+		viper.Set("auth.refreshtoken", config.Auth.RefreshToken)
 		return nil
 	}
 

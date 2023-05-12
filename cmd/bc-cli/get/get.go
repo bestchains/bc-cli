@@ -22,6 +22,7 @@ import (
 	"github.com/bestchains/bc-cli/pkg/account"
 	"github.com/bestchains/bc-cli/pkg/common"
 	"github.com/bestchains/bc-cli/pkg/depository"
+	"github.com/bestchains/bc-cli/pkg/org"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
@@ -32,5 +33,6 @@ func NewGetCmd() *cobra.Command {
 	}
 	cmd.AddCommand(depository.NewGetDepositoryCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	cmd.AddCommand(account.NewGetAccountCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+	cmd.AddCommand(org.NewOrgGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	return cmd
 }
