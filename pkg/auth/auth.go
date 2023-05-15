@@ -104,8 +104,8 @@ func newClient(ctx context.Context, config common.AuthConfig) (*client, error) {
 		return nil, fmt.Errorf("oidc discovery error: %w", err)
 	}
 	oauth2Config := oauth2.Config{
-		ClientID:     common.ClientID,
-		ClientSecret: common.ClientSecret,
+		ClientID:     config.ClientID,
+		ClientSecret: config.ClientSecret,
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  config.IssuerURL + "/auth",
 			TokenURL: config.IssuerURL + "/token",
@@ -183,7 +183,7 @@ func (c *client) verifyToken(ctx context.Context, token *oauth2.Token) error {
 }
 
 func (c *client) verifyIDToken(ctx context.Context) error {
-	verifier := c.provider.Verifier(&gooidc.Config{ClientID: common.ClientID})
+	verifier := c.provider.Verifier(&gooidc.Config{ClientID: c.AuthConfig.ClientID})
 	_, err := verifier.Verify(ctx, c.AuthConfig.IDToken)
 	if err != nil {
 		return fmt.Errorf("could not verify the ID token: %w", err)

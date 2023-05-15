@@ -47,8 +47,8 @@ func NewCmd() *cobra.Command {
 	cmd.PersistentFlags().String("issuer-url", "https://portal.172.22.96.209.nip.io/oidc", "issuer url for oidc")
 	cmd.PersistentFlags().Bool("enable-auth", false, "enable oidc auth")
 	cmd.PersistentFlags().String("master-url", "https://172.22.96.146:9443", "master url")
-	cmd.PersistentFlags().String("client-id", common.ClientID, "oidc client id")
-	cmd.PersistentFlags().String("client-secret", common.ClientSecret, "oidc client secret")
+	cmd.PersistentFlags().String("client-id", "bff-client", "oidc client id")
+	cmd.PersistentFlags().String("client-secret", "61324af0-1234-4f61-b110-ef57013267d6", "oidc client secret")
 
 	ConfigFileFullPath := cmd.PersistentFlags().String("config", common.ConfigFilePath, "config file")
 	_ = viper.BindPFlag("auth.issuerurl", cmd.PersistentFlags().Lookup("issuer-url"))
