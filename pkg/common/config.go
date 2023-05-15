@@ -100,13 +100,6 @@ const (
 	// LocalBindPort is the local bind port,
 	// If you want to change it, you have to change the configuration in the oidc-server configmap at the same time.
 	LocalBindPort = "127.0.0.1:26666"
-	// ClientID for oidc
-	// If you want to change it, you have to change the configuration in the oidc-server configmap at the same time.
-	ClientID = "bc-cli"
-	// ClientSecret for oidc
-	// If you want to change it, you have to change the configuration in the oidc-server configmap at the same time.
-	ClientSecret = "bc-cli-cli"
-
 	// ConfigFilePath is the config file path and file name
 	ConfigFilePath = "$HOME/.bestchains/config"
 	// ConfigFileType is the config file type
