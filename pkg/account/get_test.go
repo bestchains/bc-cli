@@ -45,7 +45,7 @@ func TestNewGetAccountCmd(t *testing.T) {
 	bufOutput := bytes.NewBuffer([]byte{})
 	bufErrOutput := bytes.NewBuffer([]byte{})
 	getCmd := NewGetAccountCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: bufOutput, ErrOut: bufErrOutput}})
-	expectOutput := []string{fmt.Sprintf("Error: stat %s: no such file or directory\nError: stat /tmp/def/abc: no such file or directory\n", common.WalletConfigDir)}
+	expectOutput := []string{fmt.Sprintf("Error: stat %s: no such file or directory\nError: stat /tmp/def/abc: no such file or directory\n", common.DefaultWalletConfigDir)}
 
 	dirEntries, err := os.ReadDir(getTestPath)
 	if err != nil {
@@ -64,7 +64,7 @@ func TestNewGetAccountCmd(t *testing.T) {
 	output := make([]string, 0)
 	// step 1: Use the default path and the default path does not exist
 	if err := getCmd.Execute(); err != nil {
-		t.Fatalf("run get account cmd with default wallet %s error %s", common.WalletConfigDir, err)
+		t.Fatalf("run get account cmd with default wallet %s error %s", common.DefaultWalletConfigDir, err)
 	}
 	// step 2: Using non-existent paths to obtain account information
 	_ = getCmd.Flags().Set("wallet", "/tmp/def/abc")

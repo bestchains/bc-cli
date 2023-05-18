@@ -31,9 +31,6 @@ func NewDeleteAccountCmd(option common.Options) *cobra.Command {
 		Use:   "account [address]",
 		Short: "Delete the account according to the wallet information.",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			if walletDir == "" {
-				walletDir = common.WalletConfigDir
-			}
 			walletDir = strings.TrimSuffix(walletDir, "/")
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -52,6 +49,6 @@ func NewDeleteAccountCmd(option common.Options) *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().StringVar(&walletDir, "wallet", "", "wallet path")
+	cmd.Flags().StringVar(&walletDir, "wallet", common.DefaultWalletConfigDir, "wallet path")
 	return cmd
 }

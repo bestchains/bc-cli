@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -35,11 +36,13 @@ import (
 	"github.com/bestchains/bestchains-contracts/library/context"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func NewCreateDepositoryCmd() *cobra.Command {
+	var err error
 	cmd := &cobra.Command{
-		Use: "depository NAME [args]",
+		Use: "depository [args]",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			// Get depot info from flags
@@ -59,10 +62,6 @@ func NewCreateDepositoryCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			untrusted, err := cmd.Flags().GetBool("untrusted")
-			if err != nil {
-				return err
-			}
 			walletDir, err := cmd.Flags().GetString("wallet")
 			if err != nil {
 				return err
@@ -73,15 +72,15 @@ func NewCreateDepositoryCmd() *cobra.Command {
 			}
 
 			// FIXME: the host should be read from the configuration file.
-			host, _ := cmd.Flags().GetString("host")
+			host := viper.GetString("saas.depository.server")
 			if host == "" {
 				return fmt.Errorf("no host provided")
 			}
 
 			valueBase64 := generateValueDepotBase64(n, t, id, p)
 
-			if untrusted {
-				fmt.Print("putting untrusted value...\n")
+			if account == "" {
+				fmt.Println("creating untrusted depository without account endorsement")
 				postValue := url.Values{}
 				postValue.Add("value", valueBase64)
 
@@ -96,6 +95,7 @@ func NewCreateDepositoryCmd() *cobra.Command {
 				fmt.Print(string(resp))
 				return nil
 			} else {
+				fmt.Printf("creating trusted depository with account %s endorsement \n", account)
 				//read account info
 				obj, err := getWalletInfo(walletDir, account)
 				if err != nil {
@@ -131,14 +131,26 @@ func NewCreateDepositoryCmd() *cobra.Command {
 	}
 
 	// define flags
-	cmd.Flags().StringP("host", "o", "", "host URL")
-	cmd.Flags().StringP("wallet", "w", "", "wallet path")
+	cmd.Flags().StringP("host", "", "", "host URL of depository server")
+	cmd.Flags().StringP("wallet", "w", common.DefaultWalletConfigDir, "wallet path")
 	cmd.Flags().StringP("account", "a", "", "account to be used")
-	cmd.Flags().StringP("name", "n", "", "depot name")
-	cmd.Flags().StringP("contentType", "t", "", "depot file type")
-	cmd.Flags().StringP("contentID", "i", "", "depot file ID")
-	cmd.Flags().StringP("platform", "p", "", "depot source platform")
-	cmd.Flags().Bool("untrusted", true, "put untrusted value")
+	cmd.Flags().StringP("name", "n", "", "depository name")
+	cmd.Flags().StringP("contentType", "t", "File", "depository file type")
+	cmd.Flags().StringP("contentID", "i", "", "depository file ID")
+	cmd.Flags().StringP("platform", "p", "bestchains", "depository source platform")
+
+	// bind depository server to flag
+	_ = viper.BindPFlag("saas.depository.server", cmd.Flags().Lookup("host"))
+
+	// define required flags
+	err = cmd.MarkFlagRequired("name")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = cmd.MarkFlagRequired("contentID")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return cmd
 }
@@ -215,9 +227,6 @@ func getWalletInfo(walletDir string, account string) (common.WalletConfig, error
 		PrivateKey: nil,
 	}
 
-	if walletDir == "" {
-		walletDir = common.WalletConfigDir
-	}
 	walletDir = strings.TrimSuffix(walletDir, "/")
 	_, err := os.Stat(walletDir)
 	if err != nil {

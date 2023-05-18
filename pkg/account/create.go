@@ -40,9 +40,6 @@ func NewCreateAccountCmd(option common.Options) *cobra.Command {
 		Use:   "account",
 		Short: "Create an account",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if walletDir == "" {
-				walletDir = common.WalletConfigDir
-			}
 			walletDir = strings.TrimSuffix(walletDir, "/")
 			_, err := os.Stat(walletDir)
 			if err != nil {
@@ -113,6 +110,6 @@ func NewCreateAccountCmd(option common.Options) *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&pkFile, "pk", "", "the user's own private key, which is automatically generated if not provided")
-	cmd.Flags().StringVar(&walletDir, "wallet", "", "wallet path")
+	cmd.Flags().StringVar(&walletDir, "wallet", common.DefaultWalletConfigDir, "wallet path")
 	return cmd
 }
