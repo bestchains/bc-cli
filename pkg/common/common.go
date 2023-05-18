@@ -33,7 +33,7 @@ const (
 )
 
 var (
-	WalletConfigDir = filepath.Join(os.Getenv("HOME"), WalletHomeDir)
+	DefaultWalletConfigDir = filepath.Join(os.Getenv("HOME"), WalletHomeDir)
 )
 
 type WalletConfig struct {

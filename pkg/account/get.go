@@ -35,9 +35,6 @@ func NewGetAccountCmd(option common.Options) *cobra.Command {
 		Use:   "account",
 		Short: "Display account information according to wallet path",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			if walletDir == "" {
-				walletDir = common.WalletConfigDir
-			}
 			walletDir = strings.TrimSuffix(walletDir, "/")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -64,6 +61,6 @@ func NewGetAccountCmd(option common.Options) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&walletDir, "wallet", "", "wallet path")
+	cmd.Flags().StringVar(&walletDir, "wallet", common.DefaultWalletConfigDir, "wallet path")
 	return cmd
 }
