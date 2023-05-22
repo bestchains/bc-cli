@@ -83,6 +83,8 @@ type AuthConfig struct {
 	RefreshToken string `mapstructure:"refreshtoken"`
 	// Expiry is the expiry time of the access token
 	Expiry int64 `mapstructure:"expiry"`
+	// Username is the preferred_username
+	Username string `mapstructure:"username"`
 
 	ClientID     string `mapstructure:"clientid"`
 	ClientSecret string `mapstructure:"clientsecret"`

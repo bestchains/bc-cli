@@ -85,6 +85,7 @@ func Auth(ctx context.Context, config *common.AuthConfig) (authConfig *common.Au
 			klog.V(2).Infoln("ID token has expired, try to refresh it...")
 			err = client.refresh(ctx)
 		}
+
 		if err == nil {
 			idToken = config.IDToken
 			return &client.AuthConfig, nil
@@ -173,7 +174,7 @@ func (c *client) newAuthReq(ctx context.Context) (config *common.AuthConfig, err
 func (c *client) verifyToken(ctx context.Context, token *oauth2.Token) error {
 	idToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		return fmt.Errorf("id_token is missing in the token response: %s", token)
+		return fmt.Errorf("id_token is missing in the token response: %v", token)
 	}
 	c.AuthConfig.IDToken = idToken
 	if err := c.verifyIDToken(ctx); err != nil {
@@ -184,10 +185,16 @@ func (c *client) verifyToken(ctx context.Context, token *oauth2.Token) error {
 
 func (c *client) verifyIDToken(ctx context.Context) error {
 	verifier := c.provider.Verifier(&gooidc.Config{ClientID: c.AuthConfig.ClientID})
-	_, err := verifier.Verify(ctx, c.AuthConfig.IDToken)
+	idToken, err := verifier.Verify(ctx, c.AuthConfig.IDToken)
 	if err != nil {
 		return fmt.Errorf("could not verify the ID token: %w", err)
 	}
+	oUser := make(map[string]interface{})
+	err = idToken.Claims(&oUser)
+	if err != nil {
+		return fmt.Errorf("could not parse the ID token: %w", err)
+	}
+	c.AuthConfig.Username = oUser["preferred_username"].(string)
 	return nil
 }
 

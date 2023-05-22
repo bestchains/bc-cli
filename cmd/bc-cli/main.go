@@ -70,6 +70,7 @@ func NewCmd() *cobra.Command {
 		config.Auth = *configGet
 		viper.Set("auth.idtoken", config.Auth.IDToken)
 		viper.Set("auth.refreshtoken", config.Auth.RefreshToken)
+		viper.Set("auth.username", config.Auth.Username)
 		return nil
 	}
 

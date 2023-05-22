@@ -22,11 +22,13 @@ import (
 )
 
 const (
-	IBPGroup   = "ibp.com"
-	IBPVersion = "v1beta1"
-
+	IBPGroup             = "ibp.com"
+	IBPVersion           = "v1beta1"
+	CoreVersion          = "v1"
 	OrganizationResource = "organizations"
 	FederationResource   = "federations"
+	Channel              = "channels"
+	Configmap            = "configmaps"
 )
 
 func InKubeGetter() (*clientcmdapi.Config, error) {
