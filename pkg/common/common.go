@@ -30,10 +30,12 @@ const (
 	ListDepository            = "/basic/depositories"
 	CurrentNonce              = "/basic/currentNonce"
 	WalletHomeDir             = ".bestchains/wallet"
+	ConnProfileDir            = ".bestchains/connProfile"
 )
 
 var (
 	DefaultWalletConfigDir = filepath.Join(os.Getenv("HOME"), WalletHomeDir)
+	DefaultConnProfileDir  = filepath.Join(os.Getenv("HOME"), ConnProfileDir)
 )
 
 type WalletConfig struct {
