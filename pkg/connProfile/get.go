@@ -124,11 +124,11 @@ func NewGetConnProfileCmd(option common.Options) *cobra.Command {
 			var targetFile string
 			if output == "json" {
 				objBytes, _ = json.MarshalIndent(obj, "", "  ")
-				targetFile = fmt.Sprintf("%s/%s", connProfileDir, "profile.json")
+				targetFile = fmt.Sprintf("%s/%s.json", connProfileDir, channel)
 			}
 			if output == "yaml" {
 				objBytes, _ = yaml.Marshal(obj)
-				targetFile = fmt.Sprintf("%s/%s", connProfileDir, "profile.yaml")
+				targetFile = fmt.Sprintf("%s/%s.yaml", connProfileDir, channel)
 			}
 			f, err := os.Create(targetFile)
 			if err != nil && !os.IsExist(err) {
