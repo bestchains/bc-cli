@@ -17,6 +17,7 @@ limitations under the License.
 package get
 
 import (
+	"github.com/bestchains/bc-cli/pkg/federation"
 	"os"
 
 	"github.com/bestchains/bc-cli/pkg/account"
@@ -36,5 +37,12 @@ func NewGetCmd() *cobra.Command {
 	cmd.AddCommand(account.NewGetAccountCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	cmd.AddCommand(org.NewOrgGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	cmd.AddCommand(connProfile.NewGetConnProfileCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+	cmd.AddCommand(federation.NewFedGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+	//cmd.AddCommand(chaincode.NewCCGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+	//cmd.AddCommand(chaincodebuild.NewCCBGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+	//cmd.AddCommand(channel.NewChanGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+	//cmd.AddCommand(vote.NewVoteGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+	//cmd.AddCommand(proposal.NewProposalGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+	//cmd.AddCommand(policy.NewPolicyGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	return cmd
 }

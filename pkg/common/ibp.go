@@ -17,16 +17,24 @@ limitations under the License.
 package common
 
 import (
+	"encoding/json"
+
 	"github.com/spf13/viper"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 const (
 	IBPGroup             = "ibp.com"
 	IBPVersion           = "v1beta1"
+	IAMGroup             = "iam.tenxcloud.com"
+	IAMVersion           = "v1alpha1"
 	CoreVersion          = "v1"
 	OrganizationResource = "organizations"
 	FederationResource   = "federations"
+	UserResource         = "users"
 	Channel              = "channels"
 	Configmap            = "configmaps"
 )
@@ -75,4 +83,18 @@ func InKubeGetter() (*clientcmdapi.Config, error) {
 			},
 		},
 	}, nil
+}
+
+func ListToObj(list corev1.List) (runtime.Object, error) {
+	var obj runtime.Object
+	listJSON, err := json.Marshal(list)
+	if err != nil {
+		return obj, err
+	}
+	converted, err := runtime.Decode(unstructured.UnstructuredJSONScheme, listJSON)
+	if err != nil {
+		return obj, err
+	}
+	obj = converted
+	return obj, nil
 }
