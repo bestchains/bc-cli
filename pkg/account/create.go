@@ -17,28 +17,27 @@ limitations under the License.
 package account
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/x509"
-	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/bestchains/bc-cli/pkg/common"
-	"github.com/bestchains/bestchains-contracts/library"
 	"github.com/spf13/cobra"
 )
 
+// NewCreateAccountCmd creates a new Cobra command for creating a new account with the given options.
+// It returns the created command.
 func NewCreateAccountCmd(option common.Options) *cobra.Command {
 	var (
-		pkFile, walletDir string
+		walletDir string
 	)
+
 	cmd := &cobra.Command{
 		Use:   "account",
 		Short: "Create an account",
+
+		// PreRunE is a Cobra command hook that runs before the command's RunE.
+		// It checks if the wallet directory exists, creates it if not, and assigns the directory to walletDir.
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			walletDir = strings.TrimSuffix(walletDir, "/")
 			_, err := os.Stat(walletDir)
@@ -50,66 +49,38 @@ func NewCreateAccountCmd(option common.Options) *cobra.Command {
 			}
 			return nil
 		},
+
+		// RunE is the Cobra command's main function.
+		// It generates a new account using the provided private key or generates a new one if none is provided.
+		// It then encodes the private key and writes the account object to a file in the wallet directory.
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
-				pk      *ecdsa.PrivateKey
-				err     error
-				pkBytes []byte
+				err error
 			)
-
-			if pkFile == "" {
-				pk, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-			} else {
-				pkBytes, err = os.ReadFile(pkFile)
-				if err != nil {
-					return err
-				}
-				pkEncoded, _ := pem.Decode(pkBytes)
-				pk, err = x509.ParseECPrivateKey(pkEncoded.Bytes)
-			}
+			// NewLocalWallet creates a new local wallet with a directory path.
+			wallet, err := NewLocalWallet(walletDir)
 			if err != nil {
 				return err
 			}
 
-			addr := new(library.Address)
-			if err = addr.FromPublicKey(&pk.PublicKey); err != nil {
-				return err
-			}
-			x509Encoded, err := x509.MarshalECPrivateKey(pk)
+			// NewAccount creates a new account.
+			account, err := NewAccount()
 			if err != nil {
 				return err
 			}
 
-			pkBytes = pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: x509Encoded})
-			obj := common.WalletConfig{
-				Address:    addr.String(),
-				PrivateKey: pkBytes,
-			}
-
-			objBytes, _ := json.Marshal(obj)
-			targetFile := fmt.Sprintf("%s/%s", walletDir, addr)
-			f, err := os.Create(targetFile)
+			// StoreAccount stores the account in the wallet.
+			err = wallet.StoreAccount(account)
 			if err != nil {
-				if os.IsExist(err) {
-					return nil
-				}
 				return err
 			}
 
-			_, err = f.Write(objBytes)
-			if err != nil {
-				fmt.Fprintf(option.ErrOut, "Error: account/%s %s", addr, err)
-				f.Close()
-				os.Remove(targetFile)
-				return err
-			}
-			f.Close()
-			fmt.Fprintf(option.Out, "account/%s created\n", addr)
+			fmt.Fprintf(option.Out, "account/%s created\n", account.Address)
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVar(&pkFile, "pk", "", "the user's own private key, which is automatically generated if not provided")
+	// Add flags to the command.
 	cmd.Flags().StringVar(&walletDir, "wallet", common.DefaultWalletConfigDir, "wallet path")
 	return cmd
 }

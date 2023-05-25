@@ -19,82 +19,48 @@ package account
 import (
 	"bytes"
 	"fmt"
-	"os"
-	"reflect"
-	"sort"
-	"strings"
 	"testing"
 
 	"github.com/bestchains/bc-cli/pkg/common"
+	"github.com/stretchr/testify/assert"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-const (
-	createTestBasePath = ".create"
-	createTestPath     = createTestBasePath + "/wallet"
-	userPrivateKey     = "./pk.pem"
-	pkContent          = `-----BEGIN PRIVATE KEY-----
-MHcCAQEEIDuaob5MQI3tl8H/Z8L+VIiKaER1r/aojZfeRapKpbBhoAoGCCqGSM49
-AwEHoUQDQgAER6bI26M8/6cEwpHNm+wHq/wxU4ISG/2xfcyGeAsghx4hAUjVg9rr
-XYwFcMEK3BTGtx7v6Ai2OhxK4wF6/jibOA==
------END PRIVATE KEY-----`
-)
-
 func TestNewCreateAccountCmd(t *testing.T) {
-	scanfFormat := "account/%s created"
-	bufOutput := bytes.NewBuffer([]byte{})
-	bufErrOutput := bytes.NewBuffer([]byte{})
+	// Create a temporary wallet directory
+	tempDir := t.TempDir()
 
-	f, err := os.Create(userPrivateKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = f.Write([]byte(pkContent))
-	if err != nil {
-		t.Fatal(err)
-	}
-	f.Close()
+	// Create a buffer for capturing command output
+	output := new(bytes.Buffer)
 
-	// step 1: Automatic generation of three accounts
-	createCmd := NewCreateAccountCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: bufOutput, ErrOut: bufErrOutput}})
-	_ = createCmd.Flags().Set("wallet", createTestPath)
-	for i := 0; i < 3; i++ {
-		if err := createCmd.Execute(); err != nil {
-			t.Fatalf("run create account cmd error %s", err)
-		}
+	// Create a dummy options struct
+	options := common.Options{
+		IOStreams: genericclioptions.IOStreams{
+			Out:    output,
+			ErrOut: output,
+		},
 	}
 
-	// step 2: Create an account with an existing private key
-	_ = createCmd.Flags().Set("pk", userPrivateKey)
-	if err := createCmd.Execute(); err != nil {
-		t.Fatalf("run create account cmd with pk error %s", err)
-	}
+	// Create the Cobra command
+	cmd := NewCreateAccountCmd(options)
+	cmd.SetArgs([]string{"--wallet", tempDir})
 
-	output := strings.Split(strings.TrimSpace(bufOutput.String()), "\n")
-	files := make([]string, len(output))
-	for i, o := range output {
-		var fileName string
-		fmt.Sscanf(o, scanfFormat, &fileName)
-		files[i] = fileName
-	}
-	sort.Strings(files)
+	// Execute the command
+	err := cmd.Execute()
 
-	// step 3: Check for file matches
-	dirEntries, err := os.ReadDir(createTestPath)
-	if err != nil {
-		t.Fatalf("run read dir error %s", err)
-	}
-	expectFiles := make([]string, 0)
-	for _, dir := range dirEntries {
-		if dir.IsDir() {
-			continue
-		}
-		expectFiles = append(expectFiles, dir.Name())
-	}
-	if !reflect.DeepEqual(expectFiles, files) {
-		t.Fatalf("expect %v get %v", expectFiles, files)
-	}
+	// Assert that no error occurred
+	assert.NoError(t, err)
 
-	os.RemoveAll(createTestBasePath)
-	os.Remove(userPrivateKey)
+	// Assert that the account file was created in the wallet directory
+	wallet, err := NewLocalWallet(tempDir)
+	assert.NoError(t, err)
+
+	accs, err := wallet.ListAccounts()
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(accs))
+
+	// Assert that the command output contains the expected message
+
+	expectedOutput := fmt.Sprintf("account/%s created\n", accs[0])
+	assert.Equal(t, expectedOutput, output.String())
 }

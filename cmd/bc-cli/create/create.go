@@ -22,16 +22,32 @@ import (
 	"github.com/bestchains/bc-cli/pkg/account"
 	"github.com/bestchains/bc-cli/pkg/common"
 	"github.com/bestchains/bc-cli/pkg/depository"
+	marketrepo "github.com/bestchains/bc-cli/pkg/market/repository"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
+// NewCreateCmd returns the Cobra command for creating resources.
 func NewCreateCmd() *cobra.Command {
+	// Create a new Cobra command.
 	cmd := &cobra.Command{
 		Use: "create",
 	}
 
+	// Add the subcommands for creating a depository and market repository.
 	cmd.AddCommand(depository.NewCreateDepositoryCmd())
-	cmd.AddCommand(account.NewCreateAccountCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+	cmd.AddCommand(marketrepo.NewCreateMarketRepoCmd())
+
+	// Add the subcommand for creating an account.
+	cmd.AddCommand(account.NewCreateAccountCmd(common.Options{
+		// Set the IOStreams for the command to use.
+		IOStreams: genericclioptions.IOStreams{
+			In:     os.Stdin,
+			Out:    os.Stdout,
+			ErrOut: os.Stderr,
+		},
+	}))
+
+	// Return the command.
 	return cmd
 }

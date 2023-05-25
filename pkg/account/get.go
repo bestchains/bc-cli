@@ -17,8 +17,6 @@ limitations under the License.
 package account
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	"github.com/bestchains/bc-cli/pkg/common"
@@ -26,41 +24,49 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewGetAccountCmd creates a new Cobra command for displaying account information
+// according to wallet path.
 func NewGetAccountCmd(option common.Options) *cobra.Command {
+	// Initialize variables.
 	var (
 		walletDir     string
 		accountHeader = []string{"ACCOUNT"}
 	)
+
+	// Create the command.
 	cmd := &cobra.Command{
 		Use:   "account",
 		Short: "Display account information according to wallet path",
 		PreRun: func(cmd *cobra.Command, args []string) {
+			// Remove trailing slash from wallet path.
 			walletDir = strings.TrimSuffix(walletDir, "/")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := os.Stat(walletDir)
-			if err != nil {
-				fmt.Fprintf(option.ErrOut, "Error: %s\n", err)
-				return nil
-			}
-
-			print := make([]printer.Printer, 0)
-			dirEntries, err := os.ReadDir(walletDir)
+			// Create a new local wallet.
+			wallet, err := NewLocalWallet(walletDir)
 			if err != nil {
 				return err
 			}
-			for _, info := range dirEntries {
-				if info.IsDir() {
-					continue
-				}
-				print = append(print, AccountPrinter(info.Name()))
+
+			// Get a list of accounts from the wallet.
+			accounts, err := wallet.ListAccounts()
+			if err != nil {
+				return err
 			}
 
+			// Create a list of account printers.
+			print := make([]printer.Printer, 0)
+			for _, account := range accounts {
+				print = append(print, AccountPrinter(account))
+			}
+
+			// Print the account information.
 			printer.Print(option.Out, accountHeader, print)
 			return nil
 		},
 	}
 
+	// Add the wallet flag to the command.
 	cmd.Flags().StringVar(&walletDir, "wallet", common.DefaultWalletConfigDir, "wallet path")
 	return cmd
 }
