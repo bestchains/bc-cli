@@ -90,11 +90,23 @@ type AuthConfig struct {
 	ClientSecret string `mapstructure:"clientsecret"`
 }
 
+// SaasConfig represents the configuration for a SaaS application.
 type SaasConfig struct {
+	// Depository represents the configuration for the depository server.
 	Depository Depository `mapstructure:"depository"`
+	// Market represents the configuration for the market server.
+	Market Market `mapstructure:"market"`
 }
 
+// Depository represents the configuration for the depository server.
 type Depository struct {
+	// Server represents the URL of the depository server.
+	Server string `mapstructure:"server"`
+}
+
+// Market represents the configuration for the market server.
+type Market struct {
+	// Server represents the URL of the market server.
 	Server string `mapstructure:"server"`
 }
 

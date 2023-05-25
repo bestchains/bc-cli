@@ -23,26 +23,40 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
+// Constants for file paths
 const (
-	CreateDepository          = "/basic/putValue"
-	CreateUntrustedDepository = "/basic/putUntrustValue"
-	GetDepository             = "/basic/depositories/%s"
-	ListDepository            = "/basic/depositories"
-	CurrentNonce              = "/basic/currentNonce"
-	WalletHomeDir             = ".bestchains/wallet"
-	ConnProfileDir            = ".bestchains/connProfile"
+	WalletHomeDir  = ".bestchains/wallet"      // directory for wallet files
+	ConnProfileDir = ".bestchains/connProfile" // directory for connection profile files
 )
 
+// Constants for API endpoints
+const (
+	// Endpoint to create a depository
+	CreateDepository = "/basic/putValue"
+	// Endpoint to create an untrusted depository
+	CreateUntrustedDepository = "/basic/putUntrustValue"
+	// Endpoint to get a specific depository
+	GetDepository = "/basic/depositories/%s"
+	// Endpoint to list all depositories
+	ListDepository = "/basic/depositories"
+	// Endpoint to get the current nonce
+	DepositoryCurrentNonce = "/basic/currentNonce"
+
+	// Endpoint to create a repository
+	CreateRepository = "/market/repo"
+	// Endpoint to list all repositories
+	ListRepositories = "/market/repos"
+	// Endpoint to get the current market nonce
+	MarketCurrentNonce = "/market/nonce"
+)
+
+// Variables for default directory paths
 var (
 	DefaultWalletConfigDir = filepath.Join(os.Getenv("HOME"), WalletHomeDir)
 	DefaultConnProfileDir  = filepath.Join(os.Getenv("HOME"), ConnProfileDir)
 )
 
-type WalletConfig struct {
-	Address    string `json:"address"`
-	PrivateKey []byte `json:"privKey"`
-}
-
+// Options represents the command line options for the application
 type Options struct {
 	genericclioptions.IOStreams
 }

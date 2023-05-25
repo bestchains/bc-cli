@@ -18,7 +18,6 @@ package account
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"testing"
 
@@ -26,65 +25,47 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-const (
-	delTestBasePath = ".delete"
-	delTestPath     = getTestBasePath + "/wallet"
-)
-
 func TestNewDeleteAccountCmd(t *testing.T) {
-	// step 1: create 4 accounts.
-	b1 := bytes.NewBuffer([]byte{})
-	b2 := bytes.NewBuffer([]byte{})
-	createCmd := NewCreateAccountCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: b1, ErrOut: b2}})
-	_ = createCmd.Flags().Set("wallet", getTestPath)
-	for i := 0; i < 4; i++ {
-		_ = createCmd.Execute()
-	}
+	// Set up test data.
+	testAccounts := []string{"test-account-1", "test-account-2"}
 
-	deleteScanfFormat := "account \"%s\" deleted\n"
-	errFormat := "Error: account \"%s\" remove %s/%s: no such file or directory\n"
-	bufOutput := bytes.NewBuffer([]byte{})
-	bufErrOutput := bytes.NewBuffer([]byte{})
-	delCmd := NewDeleteAccountCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: bufOutput, ErrOut: bufErrOutput}})
-	_ = delCmd.Flags().Set("wallet", delTestPath)
+	// Create a temporary directory for the wallet.
+	tmpDir := t.TempDir()
+	defer os.RemoveAll(tmpDir)
 
-	dirEntries, err := os.ReadDir(delTestPath)
+	// Create a new LocalWallet instance.
+	wallet, err := NewLocalWallet(tmpDir)
 	if err != nil {
-		t.Fatalf("run read dir error %s", err)
+		t.Fatal(err)
 	}
-	expectOutput := bytes.NewBuffer([]byte{})
-	output := bytes.NewBuffer([]byte{})
 
-	normalDelFiles := make([]string, 0)
-	for _, dir := range dirEntries {
-		if dir.IsDir() {
-			continue
+	// Store some test accounts in the wallet.
+	for _, account := range testAccounts {
+		err = wallet.StoreAccount(&Account{Address: account})
+		if err != nil {
+			t.Fatal(err)
 		}
-		expectOutput.WriteString(fmt.Sprintf(deleteScanfFormat, dir.Name()))
-		normalDelFiles = append(normalDelFiles, dir.Name())
 	}
 
-	// step 1: First delete all accounts.
-	delCmd.SetArgs(normalDelFiles)
-	if err := delCmd.Execute(); err != nil {
-		t.Fatalf("run delete account cmd with args %v error %s", normalDelFiles, err)
+	// Create a new command and execute it.
+	buf := new(bytes.Buffer)
+	testOpts := common.Options{
+		IOStreams: genericclioptions.IOStreams{
+			Out: buf,
+		},
 	}
-	output.Write(bufOutput.Bytes())
-
-	// step 2: Delete non-existent account information
-	missingAccount := []string{"abc", "def"}
-	for _, account := range missingAccount {
-		expectOutput.WriteString(fmt.Sprintf(errFormat, account, delTestPath, account))
-	}
-
-	delCmd.SetArgs(missingAccount)
-	if err := delCmd.Execute(); err != nil {
-		t.Fatalf("run delete account cmd with args %v error %s", missingAccount, err)
-	}
-	output.Write(bufErrOutput.Bytes())
-	if expectOutput.String() != output.String() {
-		t.Fatalf("expect \r\n%s get \r\n%s", expectOutput.String(), output.String())
+	cmd := NewDeleteAccountCmd(testOpts)
+	cmd.SetArgs(append(testAccounts, "--wallet", tmpDir))
+	err = cmd.Execute()
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	os.RemoveAll(delTestBasePath)
+	// Check that the accounts were deleted.
+	for _, account := range testAccounts {
+		_, err = wallet.GetAccount(account)
+		if err == nil {
+			t.Fatalf("account %s was not deleted", account)
+		}
+	}
 }

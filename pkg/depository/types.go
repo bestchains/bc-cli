@@ -79,7 +79,3 @@ type ValueDepository struct {
 	TrustedTimestamp string `json:"trustedTimestamp"`
 	Platform         string `json:"platform"`
 }
-
-type nonce struct {
-	Nonce uint64 `json:"nonce"`
-}

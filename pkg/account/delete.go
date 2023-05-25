@@ -17,38 +17,39 @@ limitations under the License.
 package account
 
 import (
-	"fmt"
-	"os"
-	"strings"
-
 	"github.com/bestchains/bc-cli/pkg/common"
 	"github.com/spf13/cobra"
 )
 
+// NewDeleteAccountCmd returns a new cobra command for deleting an account.
+// option is used to pass in common.Options.
 func NewDeleteAccountCmd(option common.Options) *cobra.Command {
+	// walletDir is used to specify the wallet directory.
 	var walletDir string
+
+	// cmd is the cobra command to return.
 	cmd := &cobra.Command{
 		Use:   "account [address]",
 		Short: "Delete the account according to the wallet information.",
-		PreRun: func(cmd *cobra.Command, args []string) {
-			walletDir = strings.TrimSuffix(walletDir, "/")
-		},
-		Run: func(cmd *cobra.Command, args []string) {
-			_, err := os.Stat(walletDir)
+
+		// RunE is the function that runs when the command is called.
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Create a new local wallet.
+			wallet, err := NewLocalWallet(walletDir)
 			if err != nil {
-				fmt.Fprintf(option.ErrOut, "Error: %s\n", err)
-				return
+				return err
 			}
-			for _, address := range args {
-				targetFile := fmt.Sprintf("%s/%s", walletDir, address)
-				if err := os.Remove(targetFile); err != nil {
-					fmt.Fprintf(option.ErrOut, "Error: account \"%s\" %s\n", address, err)
-					continue
-				}
-				fmt.Fprintf(option.Out, "account \"%s\" deleted\n", address)
+
+			// Delete the specified accounts.
+			err = wallet.DeleteAccounts(args...)
+			if err != nil {
+				return err
 			}
+			return nil
 		},
 	}
+
+	// Set the wallet directory flag.
 	cmd.Flags().StringVar(&walletDir, "wallet", common.DefaultWalletConfigDir, "wallet path")
 	return cmd
 }

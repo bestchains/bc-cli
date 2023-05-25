@@ -17,23 +17,19 @@ limitations under the License.
 package depository
 
 import (
-	"crypto/ecdsa"
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 
+	"github.com/bestchains/bc-cli/pkg/account"
 	"github.com/bestchains/bc-cli/pkg/common"
+	"github.com/bestchains/bc-cli/pkg/nonce"
 	uhttp "github.com/bestchains/bc-cli/pkg/utils/http"
-	"github.com/bestchains/bestchains-contracts/library/context"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -43,8 +39,8 @@ func NewCreateDepositoryCmd() *cobra.Command {
 	var err error
 	cmd := &cobra.Command{
 		Use: "depository [args]",
-		RunE: func(cmd *cobra.Command, args []string) error {
 
+		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get depot info from flags
 			n, err := cmd.Flags().GetString("name")
 			if err != nil {
@@ -66,12 +62,13 @@ func NewCreateDepositoryCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			account, err := cmd.Flags().GetString("account")
+			accountAddress, err := cmd.Flags().GetString("account")
 			if err != nil {
 				return err
 			}
 
-			// FIXME: the host should be read from the configuration file.
+			// Bind the depository server host flag to viper config
+			_ = viper.BindPFlag("saas.depository.server", cmd.Flags().Lookup("host"))
 			host := viper.GetString("saas.depository.server")
 			if host == "" {
 				return fmt.Errorf("no host provided")
@@ -79,7 +76,7 @@ func NewCreateDepositoryCmd() *cobra.Command {
 
 			valueBase64 := generateValueDepotBase64(n, t, id, p)
 
-			if account == "" {
+			if accountAddress == "" {
 				fmt.Println("creating untrusted depository without account endorsement")
 				postValue := url.Values{}
 				postValue.Add("value", valueBase64)
@@ -95,22 +92,26 @@ func NewCreateDepositoryCmd() *cobra.Command {
 				fmt.Print(string(resp))
 				return nil
 			} else {
-				fmt.Printf("creating trusted depository with account %s endorsement \n", account)
+				fmt.Printf("creating trusted depository with account %s endorsement \n", accountAddress)
 				//read account info
-				obj, err := getWalletInfo(walletDir, account)
+				wallet, err := account.NewLocalWallet(walletDir)
 				if err != nil {
 					return err
 				}
-				pkEncoded, _ := pem.Decode(obj.PrivateKey)
-				pk, err := x509.ParseECPrivateKey(pkEncoded.Bytes)
+				acc, err := wallet.GetAccount(accountAddress)
 				if err != nil {
 					return err
 				}
-
 				// get nonce
-				nonce := getNonce(host, obj.Address)
+				currNonce, err := nonce.Get(host, common.DepositoryCurrentNonce, acc.Address)
+				if err != nil {
+					return err
+				}
 				// generate message
-				msgBase64 := generateMessageBase64(nonce, *pk, []byte(valueBase64))
+				msgBase64, err := acc.GenerateAndSignMessage(currNonce, valueBase64)
+				if err != nil {
+					return err
+				}
 				// POST PutValue request
 				postValue := url.Values{}
 				postValue.Add("message", msgBase64)
@@ -129,20 +130,17 @@ func NewCreateDepositoryCmd() *cobra.Command {
 			}
 		},
 	}
-
-	// define flags
+	// Set up command line flags for depository
 	cmd.Flags().StringP("host", "", "", "host URL of depository server")
 	cmd.Flags().StringP("wallet", "w", common.DefaultWalletConfigDir, "wallet path")
 	cmd.Flags().StringP("account", "a", "", "account to be used")
-	cmd.Flags().StringP("name", "n", "", "depository name")
-	cmd.Flags().StringP("contentType", "t", "File", "depository file type")
-	cmd.Flags().StringP("contentID", "i", "", "depository file ID")
-	cmd.Flags().StringP("platform", "p", "bestchains", "depository source platform")
+	// Depository related info
+	cmd.Flags().String("name", "", "depository name")
+	cmd.Flags().String("contentType", "File", "depository file type")
+	cmd.Flags().String("contentID", "", "depository file ID")
+	cmd.Flags().String("platform", "bestchains", "depository source platform")
 
-	// bind depository server to flag
-	_ = viper.BindPFlag("saas.depository.server", cmd.Flags().Lookup("host"))
-
-	// define required flags
+	// Mark the name and contentID flags as required
 	err = cmd.MarkFlagRequired("name")
 	if err != nil {
 		log.Fatal(err)
@@ -155,8 +153,19 @@ func NewCreateDepositoryCmd() *cobra.Command {
 	return cmd
 }
 
+// generateValueDepotBase64 generates a Base64-encoded string representation of a ValueDepository object.
+// The ValueDepository object contains the name, content type, content ID, and trusted timestamp of a value.
+// It also includes the platform on which the value was created.
+//
+// Parameters:
+// name (string): The name of the value.
+// contentType (string): The content type of the value.
+// contentID (string): The content ID of the value.
+// platform (string): The platform on which the value was created.
+//
+// Returns:
+// string: A Base64-encoded string representation of the ValueDepository object.
 func generateValueDepotBase64(name string, contentType string, contentID string, platform string) string {
-
 	// Generate ValueDepository
 	valDep := ValueDepository{
 		Name:             name,
@@ -175,76 +184,4 @@ func generateValueDepotBase64(name string, contentType string, contentID string,
 	value := base64.StdEncoding.EncodeToString(rawVal)
 
 	return value
-}
-
-func generateMessageBase64(nonce uint64, key ecdsa.PrivateKey, value []byte) string {
-	msg := context.Message{
-		Nonce:     nonce,
-		PublicKey: "",
-		Signature: "",
-	}
-
-	// Generate signature & public key
-	err := msg.GenerateSignature(&key, string(value))
-	if err != nil {
-		return "Fatal: generate signature failed: " + err.Error()
-	}
-
-	// Marshal & Encode
-	msgJson, err := json.Marshal(msg)
-	if err != nil {
-		return "Fatal: marshal failed: " + err.Error()
-	}
-
-	msgStr := base64.StdEncoding.EncodeToString(msgJson)
-	if err != nil {
-		return "Fatal: encode failed: " + err.Error()
-	}
-	return msgStr
-}
-
-func getNonce(h string, account string) uint64 {
-	getReqValue := url.Values{}
-	getReqValue.Add("account", account)
-	host := fmt.Sprintf("%s%s?%s", h, common.CurrentNonce, getReqValue.Encode())
-	resp, err := uhttp.Do(host, http.MethodGet, nil, nil)
-	if err != nil {
-		return 0
-	}
-
-	var n nonce
-	err = json.Unmarshal(resp, &n)
-	if err != nil {
-		return 0
-	}
-
-	return n.Nonce
-}
-
-func getWalletInfo(walletDir string, account string) (common.WalletConfig, error) {
-	obj := common.WalletConfig{
-		Address:    "",
-		PrivateKey: nil,
-	}
-
-	walletDir = strings.TrimSuffix(walletDir, "/")
-	_, err := os.Stat(walletDir)
-	if err != nil {
-		return obj, fmt.Errorf("walletDir error: %s", err)
-	}
-
-	// read account info
-	objBytes, err := os.ReadFile(walletDir + "/" + account)
-	if err != nil {
-		return obj, fmt.Errorf("read file error: %s", err)
-	}
-
-	err = json.Unmarshal(objBytes, &obj)
-	if err != nil {
-		return obj, fmt.Errorf("unmarshal error: %s", err)
-	}
-	if obj.Address != account {
-		return obj, fmt.Errorf("account %s not found", account)
-	}
-	return obj, nil
 }

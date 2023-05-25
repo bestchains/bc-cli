@@ -3,7 +3,7 @@ module github.com/bestchains/bc-cli
 go 1.20
 
 require (
-	github.com/bestchains/bestchains-contracts v0.0.0-20230427091538-99ca7569cde7
+	github.com/bestchains/bestchains-contracts v0.0.0-20230524054413-2da3f8ea4fb7
 	github.com/coreos/go-oidc/v3 v3.5.0
 	github.com/golangci/golangci-lint v1.52.2
 	github.com/int128/oauth2cli v1.14.0
