@@ -28,18 +28,11 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/bestchains/bc-cli/pkg/common"
+	"github.com/bestchains/bc-cli/pkg/utils"
 )
-
-func getNestedString(obj map[string]interface{}, fields ...string) string {
-	val, _, _ := unstructured.NestedString(obj, fields...)
-	return val
-}
 
 func NewGetConnProfileCmd(option common.Options) *cobra.Command {
 	var (
@@ -71,12 +64,7 @@ func NewGetConnProfileCmd(option common.Options) *cobra.Command {
 			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			cfg, err := clientcmd.BuildConfigFromKubeconfigGetter("", common.InKubeGetter)
-			if err != nil {
-				fmt.Fprintln(option.ErrOut, err)
-				return
-			}
-			cli, err := dynamic.NewForConfig(cfg)
+			cli, err := common.GetDynamicClient()
 			if err != nil {
 				fmt.Fprintln(option.ErrOut, err)
 				return
@@ -87,15 +75,15 @@ func NewGetConnProfileCmd(option common.Options) *cobra.Command {
 				fmt.Fprintln(option.ErrOut, err)
 				return
 			}
-			network = getNestedString(channelDetail.Object, "spec", "network")
-			id = getNestedString(channelDetail.Object, "spec", "id")
+			network = utils.GetNestedString(channelDetail.Object, "spec", "network")
+			id = utils.GetNestedString(channelDetail.Object, "spec", "id")
 			configmapName := fmt.Sprintf("chan-%s-connection-profile", channel)
 			configmapDetail, err := cli.Resource(schema.GroupVersionResource{Version: common.CoreVersion, Resource: common.Configmap}).Namespace(organization).Get(context.TODO(), configmapName, v1.GetOptions{})
 			if err != nil {
 				fmt.Fprintln(option.ErrOut, err)
 				return
 			}
-			profileJson := getNestedString(configmapDetail.Object, "binaryData", "profile.json")
+			profileJson := utils.GetNestedString(configmapDetail.Object, "binaryData", "profile.json")
 			rawProfileJson, err := base64.StdEncoding.DecodeString(profileJson)
 			if err != nil {
 				fmt.Fprintln(option.ErrOut, err)

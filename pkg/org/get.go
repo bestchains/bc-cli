@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/bestchains/bc-cli/pkg/common"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,9 +29,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/kubectl/pkg/cmd/get"
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
+
+	"github.com/bestchains/bc-cli/pkg/common"
 )
 
 func NewOrgGetCmd(option common.Options) *cobra.Command {
@@ -45,12 +45,7 @@ func NewOrgGetCmd(option common.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "org [NAME]",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := clientcmd.BuildConfigFromKubeconfigGetter("", common.InKubeGetter)
-			if err != nil {
-				fmt.Fprintln(option.ErrOut, err)
-				return err
-			}
-			cli, err := dynamic.NewForConfig(cfg)
+			cli, err := common.GetDynamicClient()
 			if err != nil {
 				fmt.Fprintln(option.ErrOut, err)
 				return err
@@ -65,10 +60,7 @@ func NewOrgGetCmd(option common.Options) *cobra.Command {
 			}
 			var obj runtime.Object
 			if len(args) == 0 {
-				orgs, err := cli.Resource(schema.GroupVersionResource{Group: common.IBPGroup, Version: common.IBPVersion, Resource: common.OrganizationResource}).List(context.TODO(), v1.ListOptions{
-					LabelSelector: labelSelector,
-					FieldSelector: fieldSelector,
-				})
+				orgs, err := ListOrganizations(cli, labelSelector, fieldSelector)
 				if err != nil {
 					fmt.Fprintln(option.ErrOut, err)
 					return err
@@ -118,4 +110,17 @@ func NewOrgGetCmd(option common.Options) *cobra.Command {
 	cmdutil.AddLabelSelectorFlagVar(cmd, &labelSelector)
 
 	return cmd
+}
+
+// ListOrganizations returns a list of organizations filtered by labelSelector and fieldSelector.
+// Return error if any error occurs
+func ListOrganizations(cli dynamic.Interface, labelSelector string, fieldSelector string) (*unstructured.UnstructuredList, error) {
+	organizations, err := cli.Resource(schema.GroupVersionResource{Group: common.IBPGroup, Version: common.IBPVersion, Resource: common.OrganizationResource}).List(context.TODO(), v1.ListOptions{
+		LabelSelector: labelSelector,
+		FieldSelector: fieldSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return organizations, nil
 }

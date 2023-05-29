@@ -28,8 +28,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/kubectl/pkg/cmd/get"
 
 	"github.com/bestchains/bc-cli/pkg/common"
@@ -41,14 +39,7 @@ func NewFedGetCmd(option common.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "fed [FED-NAME]... [-o json/yaml] [--with-org ORG-NAME]",
 		RunE: func(cmd *cobra.Command, args []string) error {
-
-			// get config from getter
-			cfg, err := clientcmd.BuildConfigFromKubeconfigGetter("", common.InKubeGetter)
-			if err != nil {
-				fmt.Fprintln(option.ErrOut, err)
-				return err
-			}
-			cli, err := dynamic.NewForConfig(cfg)
+			cli, err := common.GetDynamicClient()
 			if err != nil {
 				fmt.Fprintln(option.ErrOut, err)
 				return err

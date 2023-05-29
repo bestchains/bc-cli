@@ -23,6 +23,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
@@ -37,6 +39,8 @@ const (
 	UserResource         = "users"
 	Channel              = "channels"
 	Configmap            = "configmaps"
+	Proposal             = "proposals"
+	Vote                 = "votes"
 )
 
 func InKubeGetter() (*clientcmdapi.Config, error) {
@@ -83,6 +87,18 @@ func InKubeGetter() (*clientcmdapi.Config, error) {
 			},
 		},
 	}, nil
+}
+
+func GetDynamicClient() (dynamic.Interface, error) {
+	cfg, err := clientcmd.BuildConfigFromKubeconfigGetter("", InKubeGetter)
+	if err != nil {
+		return nil, err
+	}
+	cli, err := dynamic.NewForConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return cli, nil
 }
 
 func ListToObj(list corev1.List) (runtime.Object, error) {
