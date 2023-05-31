@@ -27,6 +27,7 @@ import (
 	"github.com/bestchains/bc-cli/pkg/connProfile"
 	"github.com/bestchains/bc-cli/pkg/depository"
 	"github.com/bestchains/bc-cli/pkg/federation"
+	"github.com/bestchains/bc-cli/pkg/network"
 	"github.com/bestchains/bc-cli/pkg/org"
 	"github.com/bestchains/bc-cli/pkg/proposal"
 )
@@ -46,5 +47,6 @@ func NewGetCmd() *cobra.Command {
 	//cmd.AddCommand(vote.NewVoteGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	cmd.AddCommand(proposal.NewProposalGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	//cmd.AddCommand(policy.NewPolicyGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+	cmd.AddCommand(network.NewNetworkGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	return cmd
 }

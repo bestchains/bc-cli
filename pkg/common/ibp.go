@@ -41,6 +41,7 @@ const (
 	Configmap            = "configmaps"
 	Proposal             = "proposals"
 	Vote                 = "votes"
+	Network              = "networks"
 )
 
 func InKubeGetter() (*clientcmdapi.Config, error) {
