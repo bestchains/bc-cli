@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
@@ -28,9 +29,11 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/kubectl/pkg/cmd/get"
 
 	"github.com/bestchains/bc-cli/pkg/common"
+	"github.com/bestchains/bc-cli/pkg/utils"
 )
 
 func NewFedGetCmd(option common.Options) *cobra.Command {
@@ -58,55 +61,13 @@ func NewFedGetCmd(option common.Options) *cobra.Command {
 
 			if orgName == "" {
 				if len(args) == 0 {
-					// get all feds of all orgs
-					// - get orgList from username
-					username := viper.GetString("auth.username")
-					u, err := cli.Resource(schema.GroupVersionResource{
-						Group:    common.IAMGroup,
-						Version:  common.IAMVersion,
-						Resource: common.UserResource,
-					}).Get(context.TODO(), username, v1.GetOptions{})
+					federations, err := ListFederations(cli)
 					if err != nil {
+						fmt.Fprintln(option.ErrOut, err)
 						return err
 					}
-					orgList := u.GetAnnotations()["bestchains"]
-					var orgs map[string]interface{}
-					if err := json.Unmarshal([]byte(orgList), &orgs); err != nil {
-						return err
-					}
-					orgNames, ok := orgs["list"].(map[string]interface{})
-					if ok {
-						// get org & fetch feds
-						for org := range orgNames {
-							orgObj, err := cli.Resource(schema.GroupVersionResource{
-								Group:    common.IBPGroup,
-								Version:  common.IBPVersion,
-								Resource: common.OrganizationResource,
-							}).Get(context.TODO(), org, v1.GetOptions{})
-							if err != nil {
-								fmt.Fprintln(option.ErrOut, err)
-								return err
-							}
-
-							feds, _, _ := unstructured.NestedStringSlice(orgObj.Object, "status", "federations")
-
-							// append to result list
-							for _, fedName := range feds {
-								fed, err := cli.Resource(schema.GroupVersionResource{
-									Group:    common.IBPGroup,
-									Version:  common.IBPVersion,
-									Resource: common.FederationResource,
-								}).Get(context.TODO(), fedName, v1.GetOptions{})
-								if err != nil {
-									fmt.Fprintln(option.ErrOut, err)
-									continue
-								}
-								list.Items = append(list.Items, runtime.RawExtension{Object: fed})
-							}
-						}
-					} else {
-						fmt.Fprintln(option.Out, "No organization found.")
-						return nil
+					for i := 0; i < len(federations.Items); i++ {
+						list.Items = append(list.Items, runtime.RawExtension{Object: &federations.Items[i]})
 					}
 				} else {
 					// get specified feds by fed names
@@ -178,4 +139,50 @@ func NewFedGetCmd(option common.Options) *cobra.Command {
 	defaultPrintFlag.AddFlags(cmd)
 
 	return cmd
+}
+
+// ListFederations return a list of federations.
+// Return error if any error occurs
+func ListFederations(cli dynamic.Interface) (*unstructured.UnstructuredList, error) {
+	username := viper.GetString("auth.username")
+	users, err := cli.Resource(schema.GroupVersionResource{Group: common.IAMGroup, Version: common.IAMVersion, Resource: common.UserResource}).List(context.TODO(), v1.ListOptions{
+		LabelSelector: fmt.Sprintf("t7d.io.username=%s", username),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(users.Items) == 0 {
+		return nil, errors.New("No user found.")
+	}
+	user := users.Items[0]
+	orgList := user.GetAnnotations()["bestchains"]
+	var orgs map[string]interface{}
+	if err := json.Unmarshal([]byte(orgList), &orgs); err != nil {
+		return nil, err
+	}
+	orgNames, ok := orgs["list"].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("No organization found.")
+	}
+	var federationNames []string
+	for org := range orgNames {
+		orgObj, err := cli.Resource(schema.GroupVersionResource{Group: common.IBPGroup, Version: common.IBPVersion, Resource: common.OrganizationResource}).Get(context.TODO(), org, v1.GetOptions{})
+		if err != nil {
+			continue
+		}
+		feds, found, err := unstructured.NestedStringSlice(orgObj.Object, "status", "federations")
+		if !found || err != nil {
+			continue
+		}
+		federationNames = append(federationNames, feds...)
+	}
+	list := &unstructured.UnstructuredList{}
+	for _, federationName := range utils.RemoveDuplicateForStringSlice(federationNames) {
+		federation, err := cli.Resource(schema.GroupVersionResource{Group: common.IBPGroup, Version: common.IBPVersion, Resource: common.FederationResource}).Get(context.TODO(), federationName, v1.GetOptions{})
+		if err != nil {
+			continue
+		}
+		list.Items = append(list.Items, *federation)
+	}
+	return list, nil
 }
