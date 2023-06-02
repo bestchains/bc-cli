@@ -42,6 +42,7 @@ const (
 	Proposal             = "proposals"
 	Vote                 = "votes"
 	Network              = "networks"
+	EndorsePolicy        = "endorsepolicies"
 )
 
 func InKubeGetter() (*clientcmdapi.Config, error) {
