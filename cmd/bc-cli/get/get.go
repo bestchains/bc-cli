@@ -23,6 +23,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"github.com/bestchains/bc-cli/pkg/account"
+	"github.com/bestchains/bc-cli/pkg/chaincode"
 	"github.com/bestchains/bc-cli/pkg/chaincodebuild"
 	"github.com/bestchains/bc-cli/pkg/common"
 	"github.com/bestchains/bc-cli/pkg/connProfile"
@@ -43,7 +44,7 @@ func NewGetCmd() *cobra.Command {
 	cmd.AddCommand(org.NewOrgGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	cmd.AddCommand(connProfile.NewGetConnProfileCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	cmd.AddCommand(federation.NewFedGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
-	//cmd.AddCommand(chaincode.NewCCGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
+	cmd.AddCommand(chaincode.NewCCGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	cmd.AddCommand(chaincodebuild.NewCCBGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	//cmd.AddCommand(channel.NewChanGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
 	//cmd.AddCommand(vote.NewVoteGetCmd(common.Options{IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}}))
