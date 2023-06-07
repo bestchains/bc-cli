@@ -47,13 +47,13 @@ func NewGetEndorsePolicyCmd(option common.Options) *cobra.Command {
 
 Examples:
   # Get all the endorsepolicies under a network
-  bc-cli get ep --netowrk=<network-name>
+  bc-cli get ep --network=<network-name>
 
   # Get the endorsepolicy for a number of channels specified by a network
   bc-cli get ep --network=<network-name> --channel=<channel1>,<channel2>
 
   # Specify the endorsepolicy name
-  bc-cli get ep --network=<netowkr-name> ep1 ep2
+  bc-cli get ep --network=<network-name> ep1 ep2
 `,
 
 		Run: func(cmd *cobra.Command, args []string) {
@@ -86,7 +86,7 @@ Examples:
 				filterChan := make(map[string]struct{})
 				for _, ch := range chans {
 					if _, ok := chanMap[ch]; !ok {
-						errOutput = append(errOutput, fmt.Errorf("channel %s don't belong to netowrk %s", ch, network))
+						errOutput = append(errOutput, fmt.Errorf("channel %s don't belong to network %s", ch, network))
 						continue
 					}
 					filterChan[ch] = struct{}{}
