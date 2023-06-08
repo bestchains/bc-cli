@@ -37,6 +37,7 @@ const (
 	OrganizationResource = "organizations"
 	FederationResource   = "federations"
 	UserResource         = "users"
+	NetworkResource      = "networks"
 	Channel              = "channels"
 	Configmap            = "configmaps"
 	Proposal             = "proposals"
