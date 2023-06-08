@@ -42,7 +42,8 @@ func NewGetEndorsePolicyCmd(option common.Options) *cobra.Command {
 		channel string
 	)
 	cmd := &cobra.Command{
-		Use: "ep [NAME]",
+		Use:   "ep [NAME]",
+		Short: "Get endorsepolicy according to blockchain network",
 		Long: `Get endorsepolicy according to blockchain network
 
 Examples:

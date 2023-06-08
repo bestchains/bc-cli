@@ -38,7 +38,8 @@ import (
 func NewNetworkGetCmd(option common.Options) *cobra.Command {
 	defaultPrintFlag := get.NewGetPrintFlags()
 	cmd := &cobra.Command{
-		Use: "network [NAME]",
+		Use:   "network [NAME]",
+		Short: "Get a list of network",
 		Run: func(cmd *cobra.Command, args []string) {
 			cli, err := common.GetDynamicClient()
 			if err != nil {

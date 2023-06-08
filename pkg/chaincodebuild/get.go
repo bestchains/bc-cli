@@ -42,7 +42,8 @@ func NewCCBGetCmd(option common.Options) *cobra.Command {
 
 	defaultPrintFlag := get.NewGetPrintFlags()
 	cmd := &cobra.Command{
-		Use: "ccb [NAME]",
+		Use:   "ccb [NAME]",
+		Short: "Get the list of chaincodebuild created under a network",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
 				err := cmd.MarkFlagRequired("network")

@@ -40,7 +40,8 @@ func NewFedGetCmd(option common.Options) *cobra.Command {
 
 	defaultPrintFlag := get.NewGetPrintFlags()
 	cmd := &cobra.Command{
-		Use: "fed [FED-NAME]... [-o json/yaml] [--with-org ORG-NAME]",
+		Use:   "fed [FED-NAME]... [-o json/yaml] [--with-org ORG-NAME]",
+		Short: "Get a list of federation",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cli, err := common.GetDynamicClient()
 			if err != nil {

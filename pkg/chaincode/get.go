@@ -41,7 +41,8 @@ func NewCCGetCmd(option common.Options) *cobra.Command {
 	)
 	defaultPrintFlag := get.NewGetPrintFlags()
 	cmd := &cobra.Command{
-		Use: "chaincode [NAME]",
+		Use:   "chaincode [NAME]",
+		Short: "Get a list of the chaincode installed on a channel",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
 				err := cmd.MarkFlagRequired("channel")

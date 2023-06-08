@@ -43,7 +43,8 @@ func NewOrgGetCmd(option common.Options) *cobra.Command {
 
 	defaultPrintFlag := get.NewGetPrintFlags()
 	cmd := &cobra.Command{
-		Use: "org [NAME]",
+		Use:   "org [NAME]",
+		Short: "Get a list of organization",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cli, err := common.GetDynamicClient()
 			if err != nil {

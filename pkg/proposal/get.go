@@ -38,7 +38,8 @@ import (
 func NewProposalGetCmd(option common.Options) *cobra.Command {
 	defaultPrintFlag := get.NewGetPrintFlags()
 	cmd := &cobra.Command{
-		Use: "proposal [NAME]",
+		Use:   "proposal [NAME]",
+		Short: "Get a list of proposal",
 		Run: func(cmd *cobra.Command, args []string) {
 			cli, err := common.GetDynamicClient()
 			if err != nil {

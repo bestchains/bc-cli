@@ -34,7 +34,8 @@ import (
 func NewCreateMarketRepoCmd() *cobra.Command {
 	var err error
 	cmd := &cobra.Command{
-		Use: "market repo [args]",
+		Use:   "market repo [args]",
+		Short: "Create market",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// WalletDir&Account will be used to init the wallet
 			walletDir, err := cmd.Flags().GetString("wallet")
