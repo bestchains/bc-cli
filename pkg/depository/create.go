@@ -38,8 +38,8 @@ import (
 func NewCreateDepositoryCmd() *cobra.Command {
 	var err error
 	cmd := &cobra.Command{
-		Use: "depository [args]",
-
+		Use:   "depository [args]",
+		Short: "Create Depository",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get depot info from flags
 			n, err := cmd.Flags().GetString("name")
