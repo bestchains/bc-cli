@@ -17,6 +17,8 @@ limitations under the License.
 package account
 
 import (
+	"fmt"
+
 	"github.com/bestchains/bc-cli/pkg/common"
 	"github.com/spf13/cobra"
 )
@@ -33,19 +35,20 @@ func NewDeleteAccountCmd(option common.Options) *cobra.Command {
 		Short: "Delete the account according to the wallet information.",
 
 		// RunE is the function that runs when the command is called.
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			// Create a new local wallet.
 			wallet, err := NewLocalWallet(walletDir)
 			if err != nil {
-				return err
+				fmt.Fprintln(option.ErrOut, err)
+				return
 			}
 
 			// Delete the specified accounts.
 			err = wallet.DeleteAccounts(args...)
 			if err != nil {
-				return err
+				fmt.Fprintln(option.ErrOut, err)
+				return
 			}
-			return nil
 		},
 	}
 
