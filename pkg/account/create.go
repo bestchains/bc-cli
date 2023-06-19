@@ -53,30 +53,29 @@ func NewCreateAccountCmd(option common.Options) *cobra.Command {
 		// RunE is the Cobra command's main function.
 		// It generates a new account using the provided private key or generates a new one if none is provided.
 		// It then encodes the private key and writes the account object to a file in the wallet directory.
-		RunE: func(cmd *cobra.Command, args []string) error {
-			var (
-				err error
-			)
+		Run: func(cmd *cobra.Command, args []string) {
 			// NewLocalWallet creates a new local wallet with a directory path.
 			wallet, err := NewLocalWallet(walletDir)
 			if err != nil {
-				return err
+				fmt.Fprintln(option.ErrOut, err)
+				return
 			}
 
 			// NewAccount creates a new account.
 			account, err := NewAccount()
 			if err != nil {
-				return err
+				fmt.Fprintln(option.ErrOut, err)
+				return
 			}
 
 			// StoreAccount stores the account in the wallet.
 			err = wallet.StoreAccount(account)
 			if err != nil {
-				return err
+				fmt.Fprintln(option.ErrOut, err)
+				return
 			}
 
 			fmt.Fprintf(option.Out, "account/%s created\n", account.Address)
-			return nil
 		},
 	}
 

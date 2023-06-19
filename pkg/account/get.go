@@ -17,6 +17,7 @@ limitations under the License.
 package account
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/bestchains/bc-cli/pkg/common"
@@ -41,17 +42,19 @@ func NewGetAccountCmd(option common.Options) *cobra.Command {
 			// Remove trailing slash from wallet path.
 			walletDir = strings.TrimSuffix(walletDir, "/")
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			// Create a new local wallet.
 			wallet, err := NewLocalWallet(walletDir)
 			if err != nil {
-				return err
+				fmt.Fprintln(option.ErrOut, err)
+				return
 			}
 
 			// Get a list of accounts from the wallet.
 			accounts, err := wallet.ListAccounts()
 			if err != nil {
-				return err
+				fmt.Fprintln(option.ErrOut, err)
+				return
 			}
 
 			// Create a list of account printers.
@@ -62,7 +65,6 @@ func NewGetAccountCmd(option common.Options) *cobra.Command {
 
 			// Print the account information.
 			printer.Print(option.Out, accountHeader, print)
-			return nil
 		},
 	}
 
