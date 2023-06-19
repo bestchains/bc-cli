@@ -72,7 +72,7 @@ func NewCreateMarketRepoCmd() *cobra.Command {
 	}
 
 	// define flags
-	cmd.Flags().StringP("host", "", "", "host URL of market server")
+	cmd.Flags().StringP("host", "", "http://localhost:9998", "host URL of market server")
 	cmd.Flags().StringP("wallet", "w", common.DefaultWalletConfigDir, "wallet path")
 	cmd.Flags().StringP("account", "a", "", "account to be used")
 	cmd.Flags().String("repo-url", "", "repository url")

@@ -131,7 +131,7 @@ func NewCreateDepositoryCmd() *cobra.Command {
 		},
 	}
 	// Set up command line flags for depository
-	cmd.Flags().StringP("host", "", "", "host URL of depository server")
+	cmd.Flags().StringP("host", "", "http://localhost:9999", "host URL of depository server")
 	cmd.Flags().StringP("wallet", "w", common.DefaultWalletConfigDir, "wallet path")
 	cmd.Flags().StringP("account", "a", "", "account to be used")
 	// Depository related info

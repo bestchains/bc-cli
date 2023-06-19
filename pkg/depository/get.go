@@ -117,7 +117,7 @@ func NewGetDepositoryCmd(option common.Options) *cobra.Command {
 	cmd.Flags().StringP("kid", "k", "", "search depository by kid")
 	cmd.Flags().StringP("name", "n", "", "search depository by name")
 	cmd.Flags().StringP("contentName", "c", "", "search depository by content name")
-	cmd.Flags().StringP("host", "", "", "bc-saas server")
+	cmd.Flags().StringP("host", "", "http://localhost:9999", "bc-saas server")
 	_ = viper.BindPFlag("saas.depository.server", cmd.Flags().Lookup("host"))
 
 	return cmd
