@@ -20,6 +20,8 @@ import (
 	"bytes"
 	"encoding/json"
 	goflags "flag"
+	"fmt"
+	"os"
 	"path"
 
 	"github.com/bestchains/bc-cli/cmd/bc-cli/create"
@@ -29,6 +31,7 @@ import (
 	"github.com/bestchains/bc-cli/pkg/common"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"k8s.io/component-base/version"
 	"k8s.io/klog/v2"
 )
 
@@ -94,6 +97,7 @@ func NewCmd() *cobra.Command {
 	cmd.AddCommand(create.NewCreateCmd())
 	cmd.AddCommand(get.NewGetCmd())
 	cmd.AddCommand(delcmd.NewDeleteCmd())
+	cmd.AddCommand(newCmdVersion())
 	return cmd
 }
 
@@ -121,4 +125,20 @@ func loadConfig(configFile string) (config *common.Config, err error) {
 	}
 	klog.V(3).Infof("all config: %+v", config)
 	return config, nil
+}
+
+// newCmdVersion provides the version information of bc-cli
+func newCmdVersion() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "version",
+		Short: "Print the version of bc-cli",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("version: %s\n", version.Get())
+			fmt.Printf("commit: %s\n", version.Get().GitCommit)
+			fmt.Printf("date: %s\n", version.Get().BuildDate)
+			os.Exit(0)
+		},
+		Args: cobra.NoArgs,
+	}
+	return cmd
 }
