@@ -41,6 +41,8 @@ const (
 	ListDepository = "/basic/depositories"
 	// Endpoint to get the current nonce
 	DepositoryCurrentNonce = "/basic/currentNonce"
+	// Endpoint to download the depository certificate
+	DepositoryCertificate = "/basic/depositories/certificate/%s"
 
 	// Endpoint to create a repository
 	CreateRepository = "/market/repo"
