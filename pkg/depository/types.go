@@ -18,7 +18,6 @@ package depository
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 )
 
@@ -35,7 +34,7 @@ type Depository struct {
 	ContentName      string `json:"contentName" pg:"contentName"`
 	ContentID        string `json:"contentID" pg:"contentID"`
 	ContentType      string `json:"contentType" pg:"contentType"`
-	TrustedTimestamp string `json:"trustedTimestamp" pg:"trustedTimestamp"`
+	TrustedTimestamp int64  `json:"trustedTimestamp" pg:"trustedTimestamp"`
 }
 
 func (d Depository) GetByHeader(s string) string {
@@ -60,11 +59,7 @@ func (d Depository) GetByHeader(s string) string {
 	case "id", "contentID":
 		return d.ContentID
 	case "time", "trustedTimestamp":
-		seconds, err := strconv.Atoi(d.TrustedTimestamp)
-		if err != nil {
-			return d.TrustedTimestamp
-		}
-		now := time.Unix(int64(seconds), 0)
+		now := time.Unix(d.TrustedTimestamp, 0)
 		return now.Format("2006-01-02T15:04:05")
 	case "type", "contentType":
 		return d.ContentType

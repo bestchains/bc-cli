@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/bestchains/bc-cli/pkg/common"
 	"github.com/bestchains/bc-cli/pkg/printer"
@@ -65,6 +66,37 @@ func NewGetDepositoryCmd(option common.Options) *cobra.Command {
 			host := viper.GetString("saas.depository.server")
 			if host == "" {
 				return fmt.Errorf("no host provided")
+			}
+			certificate, _ := cmd.Flags().GetBool("certificate")
+			if certificate {
+				if len(args) == 0 {
+					return fmt.Errorf("no kid provided")
+				}
+				lang, _ := cmd.Flags().GetString("lang")
+				for _, kid := range args {
+					u := fmt.Sprintf("%s%s?language=%s", host, fmt.Sprintf(common.DepositoryCertificate, kid), lang)
+					x, err := uhttp.Do(u, http.MethodGet, nil, nil)
+					if err != nil {
+						fmt.Fprintln(option.ErrOut, err)
+						continue
+					}
+					var targetFile = fmt.Sprintf("%s.pdf", kid)
+					f, err := os.Create(targetFile)
+					if err != nil && !os.IsExist(err) {
+						fmt.Fprintln(option.ErrOut, err)
+						continue
+					}
+					_, err = f.Write(x)
+					if err != nil {
+						fmt.Fprintln(option.ErrOut, err)
+						f.Close()
+						os.Remove(targetFile)
+						continue
+					}
+					f.Close()
+					fmt.Fprintf(option.Out, "certificate %s downloaded\n", targetFile)
+				}
+				return nil
 			}
 			if len(args) == 0 {
 				u := fmt.Sprintf("%s%s", host, ConstructQuery(cmd))
@@ -118,6 +150,8 @@ func NewGetDepositoryCmd(option common.Options) *cobra.Command {
 	cmd.Flags().StringP("name", "n", "", "search depository by name")
 	cmd.Flags().StringP("contentName", "c", "", "search depository by content name")
 	cmd.Flags().StringP("host", "", "http://localhost:9999", "bc-saas server")
+	cmd.Flags().BoolP("certificate", "", false, "download certificate by kid")
+	cmd.Flags().StringP("lang", "", "CN", "language of certificate（optional values are CN or ENG）")
 	_ = viper.BindPFlag("saas.depository.server", cmd.Flags().Lookup("host"))
 
 	return cmd
