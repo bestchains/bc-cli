@@ -72,9 +72,9 @@ func NewGetDepositoryCmd(option common.Options) *cobra.Command {
 				if len(args) == 0 {
 					return fmt.Errorf("no kid provided")
 				}
-				lang, _ := cmd.Flags().GetString("lang")
+				style, _ := cmd.Flags().GetString("certificateStyle")
 				for _, kid := range args {
-					u := fmt.Sprintf("%s%s?language=%s", host, fmt.Sprintf(common.DepositoryCertificate, kid), lang)
+					u := fmt.Sprintf("%s%s?style=%s", host, fmt.Sprintf(common.DepositoryCertificate, kid), style)
 					x, err := uhttp.Do(u, http.MethodGet, nil, nil)
 					if err != nil {
 						fmt.Fprintln(option.ErrOut, err)
@@ -151,7 +151,7 @@ func NewGetDepositoryCmd(option common.Options) *cobra.Command {
 	cmd.Flags().StringP("contentName", "c", "", "search depository by content name")
 	cmd.Flags().StringP("host", "", "http://localhost:9999", "bc-saas server")
 	cmd.Flags().BoolP("certificate", "", false, "download certificate by kid")
-	cmd.Flags().StringP("lang", "", "CN", "language of certificate（optional values are CN or ENG）")
+	cmd.Flags().StringP("certificateStyle", "", "CN", "language of certificate（optional values are CN or ENG）")
 	_ = viper.BindPFlag("saas.depository.server", cmd.Flags().Lookup("host"))
 
 	return cmd
