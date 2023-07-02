@@ -23,11 +23,13 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/bestchains/bc-cli/pkg/common"
-	"github.com/bestchains/bc-cli/pkg/printer"
-	uhttp "github.com/bestchains/bc-cli/pkg/utils/http"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/bestchains/bc-cli/pkg/common"
+	"github.com/bestchains/bc-cli/pkg/printer"
+	"github.com/bestchains/bc-cli/pkg/utils"
+	uhttp "github.com/bestchains/bc-cli/pkg/utils/http"
 )
 
 func ConstructQuery(cmd *cobra.Command) string {
@@ -73,7 +75,7 @@ func NewGetDepositoryCmd(option common.Options) *cobra.Command {
 					return fmt.Errorf("no kid provided")
 				}
 				style, _ := cmd.Flags().GetString("certificateStyle")
-				for _, kid := range args {
+				for _, kid := range utils.RemoveDuplicateForStringSlice(args) {
 					u := fmt.Sprintf("%s%s?style=%s", host, fmt.Sprintf(common.DepositoryCertificate, kid), style)
 					x, err := uhttp.Do(u, http.MethodGet, nil, nil)
 					if err != nil {
