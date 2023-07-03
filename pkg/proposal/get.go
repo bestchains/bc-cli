@@ -84,7 +84,7 @@ func NewProposalGetCmd(option common.Options) *cobra.Command {
 					list.Items = append(list.Items, runtime.RawExtension{Object: proposal})
 				}
 			} else {
-				for _, arg := range args {
+				for _, arg := range utils.RemoveDuplicateForStringSlice(args) {
 					proposal, err := cli.Resource(schema.GroupVersionResource{Group: common.IBPGroup, Version: common.IBPVersion, Resource: common.Proposal}).Get(context.TODO(), arg, v1.GetOptions{})
 					if err != nil {
 						fmt.Fprintln(option.ErrOut, err)
