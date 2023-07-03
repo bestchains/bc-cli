@@ -31,6 +31,7 @@ import (
 	"k8s.io/kubectl/pkg/cmd/get"
 
 	"github.com/bestchains/bc-cli/pkg/common"
+	"github.com/bestchains/bc-cli/pkg/utils"
 )
 
 func NewCCBGetCmd(option common.Options) *cobra.Command {
@@ -90,7 +91,7 @@ func NewCCBGetCmd(option common.Options) *cobra.Command {
 					list.Items = append(list.Items, runtime.RawExtension{Object: &chaincodeBuilds.Items[i]})
 				}
 			} else {
-				for _, arg := range args {
+				for _, arg := range utils.RemoveDuplicateForStringSlice(args) {
 					chaincodeBuild, err := cli.Resource(schema.GroupVersionResource{Group: common.IBPGroup, Version: common.IBPVersion, Resource: common.ChaincodeBuild}).Get(context.TODO(), arg, v1.GetOptions{})
 					if err != nil {
 						fmt.Fprintln(option.ErrOut, err)
