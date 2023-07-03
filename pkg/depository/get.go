@@ -21,14 +21,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/bestchains/bc-cli/pkg/common"
 	"github.com/bestchains/bc-cli/pkg/printer"
-	"github.com/bestchains/bc-cli/pkg/utils"
 	uhttp "github.com/bestchains/bc-cli/pkg/utils/http"
 )
 
@@ -75,29 +73,7 @@ func NewGetDepositoryCmd(option common.Options) *cobra.Command {
 					return fmt.Errorf("no kid provided")
 				}
 				style, _ := cmd.Flags().GetString("certificateStyle")
-				for _, kid := range utils.RemoveDuplicateForStringSlice(args) {
-					u := fmt.Sprintf("%s%s?style=%s", host, fmt.Sprintf(common.DepositoryCertificate, kid), style)
-					x, err := uhttp.Do(u, http.MethodGet, nil, nil)
-					if err != nil {
-						fmt.Fprintln(option.ErrOut, err)
-						continue
-					}
-					var targetFile = fmt.Sprintf("%s.pdf", kid)
-					f, err := os.Create(targetFile)
-					if err != nil && !os.IsExist(err) {
-						fmt.Fprintln(option.ErrOut, err)
-						continue
-					}
-					_, err = f.Write(x)
-					if err != nil {
-						fmt.Fprintln(option.ErrOut, err)
-						f.Close()
-						os.Remove(targetFile)
-						continue
-					}
-					f.Close()
-					fmt.Fprintf(option.Out, "certificate %s downloaded\n", targetFile)
-				}
+				download(host, style, args, option)
 				return nil
 			}
 			if len(args) == 0 {
