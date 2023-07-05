@@ -107,11 +107,8 @@ func newClient(ctx context.Context, config common.AuthConfig) (*client, error) {
 	oauth2Config := oauth2.Config{
 		ClientID:     config.ClientID,
 		ClientSecret: config.ClientSecret,
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  config.IssuerURL + "/auth",
-			TokenURL: config.IssuerURL + "/token",
-		},
-		Scopes: []string{"openid", "email", "groups", "profile", "offline_access"},
+		Endpoint:     provider.Endpoint(),
+		Scopes:       []string{"openid", "email", "groups", "profile", "offline_access"},
 	}
 	return &client{
 		httpClient:   httpClient,
